@@ -206,7 +206,7 @@ GRtXL_config = Trainer.merge_trainer_configs(
         # "lr": 0.0005,
         # "momentum": tune.uniform(0, 1),
         # "num_workers": 2,  # parallelism
-        "framework": "tf2",  # May also use "tf2", "tfe" or "torch" if supported
+        "framework": "tf",  # May also use "tf2", "tfe" or "torch" if supported
         # "eager_tracing": True,  # In order to reach similar execution speed as with static-graph mode (tf default)
         # "vf_loss_coeff": 1,  # Scales down the value function loss for better comvergence with PPO
         # "clip_param": 0.5,
@@ -215,6 +215,38 @@ GRtXL_config = Trainer.merge_trainer_configs(
 )
 
 attention_config = {
+    "env": CybORGAgent,
+    "env_config": {
+        "null": 0,
+    },
+    "gamma": 0.99,
+    # Use GPUs iff `RLLIB_NUM_GPUS` env var set to > 0.
+    "num_gpus": int(os.environ.get("RLLIB_NUM_GPUS", 0)),
+    "num_envs_per_worker": 20,
+    "entropy_coeff": 0.001,
+    "num_sgd_iter": 10,
+    "vf_loss_coeff": 1e-5,
+    "model": {
+        # Attention net wrapping (for tf) can already use the native keras
+        # model versions. For torch, this will have no effect.
+        "_use_default_native_models": True,
+        #"custom_model": "CybORG_Torch",
+        #'fcnet_hiddens': [256, 256, 52],
+        "use_attention": True,
+        "use_lstm":  not True,
+        "max_seq_len": 10,
+        "attention_num_transformer_units": 1,
+        "attention_dim": 32,
+        "attention_memory_inference": 10,
+        "attention_memory_training": 10,
+        "attention_num_heads": 1,
+        "attention_head_dim": 32,
+        "attention_position_wise_mlp_dim": 32,
+    },
+    "framework": 'tf',
+}
+
+LSTM_config = {
     "env": CybORGAgent,
     "env_config": {
         "null": 0,
