@@ -14,11 +14,12 @@ from CybORG.Agents.Wrappers.FixedFlatWrapper import FixedFlatWrapper
 from CybORG.Agents.Wrappers.OpenAIGymWrapper import OpenAIGymWrapper
 from CybORG.Agents.Wrappers.ReduceActionSpaceWrapper import ReduceActionSpaceWrapper
 from CybORG.Agents.Wrappers import ChallengeWrapper
+from ray.rllib.models.tf.attention_net import GTrXLNet
 
 
-#from loadagent import LoadBlueAgent
-from loadHierAgent import LoadBlueAgent
-MAX_EPS = 100
+from loadagent import LoadBlueAgent
+#from loadHierAgent import LoadBlueAgent
+MAX_EPS = 1000
 agent_name = 'Blue'
 
 def wrap(env):
@@ -37,7 +38,7 @@ if __name__ == "__main__":
     # ask for a team
     team = 'Mindrake' #input("Team: ")
     # ask for a name for the agent
-    name_of_agent = 'RLLIB PPO Scaffold Many iterations'#input("Name of technique: ")
+    name_of_agent = 'Test evaluation'#input("Name of technique: ")
 
     lines = inspect.getsource(wrap)
     wrap_line = lines.split('\n')[1].split('return ')[1]
@@ -60,6 +61,9 @@ if __name__ == "__main__":
     print(f'using CybORG v{cyborg_version}, {scenario}\n')
     for num_steps in [30, 50, 100]:
         for red_agent in [B_lineAgent, RedMeanderAgent, SleepAgent]:
+            r_step = {i:[] for i in range(1, num_steps + 1)}
+            #print(r_step)
+            #print(type(list(r_step)[0]))
 
             cyborg = CybORG(path, 'sim', agents={'Red': red_agent})
             wrapped_cyborg = ChallengeWrapper(env=cyborg, agent_name='Blue') #wrap(cyborg)
@@ -87,14 +91,21 @@ if __name__ == "__main__":
                     #print(true_table)
 
                     r.append(rew)
+                    r_step[j+1].append(rew)
                     # r.append(result.reward)
                     #agent_selected = 'BLine' if agent_selected == 0 else 'RedMeander'
                     a.append((str(cyborg.get_last_action('Blue')), str(cyborg.get_last_action('Red'))))
+                agent.end_episode()    # Don't forget to dangermouse
                 total_reward.append(sum(r))
                 actions.append(a)
                 # observation = cyborg.reset().observation
                 observation = wrapped_cyborg.reset()
+            r_step = {step: mean(r_step[step]) for step in range(1, num_steps+1)}
+
             print(f'Average reward for red agent {red_agent.__name__} and steps {num_steps} is: {mean(total_reward)} with a standard deviation of {stdev(total_reward)}')
+            #print(sum(r_step.values()))
+            #include average rewards per step
+            print(f'Average reward per step for red agent {red_agent.__name__} and steps {num_steps} is:' +str(r_step))
             with open(file_name, 'a+') as data:
                 data.write(f'steps: {num_steps}, adversary: {red_agent.__name__}, mean: {mean(total_reward)}, standard deviation {stdev(total_reward)}\n')
                 for act, sum_rew in zip(actions, total_reward):
