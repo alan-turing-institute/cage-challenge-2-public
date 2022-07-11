@@ -11,7 +11,7 @@ from CybORGMAML import *
 import os
 from neural_nets import *
 from ray.rllib.models.tf.attention_net import GTrXLNet
-
+from ray import tune
 ModelCatalog.register_custom_model("CybORG_Torch", TorchModel)
 ModelCatalog.register_custom_model("CybORG_TF", TFModel)
 ModelCatalog.register_custom_model("CybORG_GTrXL_Model", GTrXLNet)
@@ -178,7 +178,7 @@ MAML_config = Trainer.merge_trainer_configs(
     }
 )
 
-GRtXL_config = Trainer.merge_trainer_configs(
+GTrXL_config = Trainer.merge_trainer_configs(
     PPO_CONFIG,
     {
         "env": CybORGAgent,
@@ -257,7 +257,8 @@ LSTM_config = {
     "num_envs_per_worker": 20,
     "entropy_coeff": 0.001,
     "num_sgd_iter": 10,
-    "vf_loss_coeff": 1e-5,
+    #"vf_loss_coeff": 1e-5,
+    #"vf_share_layers": False,
     "model": {
         # Attention net wrapping (for tf) can already use the native keras
         # model versions. For torch, this will have no effect.
@@ -265,17 +266,63 @@ LSTM_config = {
         "custom_model": "CybORG_Torch",
         'fcnet_hiddens': [256, 256, 52],
         "use_attention": not True,
-        "use_lstm":  True,
+        "use_lstm":  not True,
         "max_seq_len": 10,
-        "attention_num_transformer_units": 1,
-        "attention_dim": 32,
-        "attention_memory_inference": 10,
-        "attention_memory_training": 10,
-        "attention_num_heads": 1,
-        "attention_head_dim": 32,
-        "attention_position_wise_mlp_dim": 32,
+        "lstm_use_prev_action": True,
+        "lstm_use_prev_reward": True,
+
     },
     "framework": 'torch',
+}
+
+LSTM_curiosity_config = {
+    "env": CybORGAgent,
+    "env_config": {
+        "null": 0,
+    },
+    "gamma": 0.99,
+    # Use GPUs iff `RLLIB_NUM_GPUS` env var set to > 0.
+    "num_gpus": int(os.environ.get("RLLIB_NUM_GPUS", 0)),
+    "num_envs_per_worker": 20,
+    "entropy_coeff": 0.001,
+    "num_sgd_iter": 10,
+    #"vf_loss_coeff": 1e-5,
+    #"vf_share_layers": False,
+    "model": {
+        # Attention net wrapping (for tf) can already use the native keras
+        # model versions. For torch, this will have no effect.
+        "_use_default_native_models": True,
+        "custom_model": "CybORG_Torch",
+        'fcnet_hiddens': [256, 256, 52],
+        "use_attention": not True,
+        "use_lstm":  not True,
+        "max_seq_len": 10,
+        "lstm_use_prev_action": True,
+        "lstm_use_prev_reward": True,
+
+    },
+    "framework": 'torch',
+    "exploration_config": {
+        "type": "Curiosity",  # <- Use the Curiosity module for exploring.
+        "eta": 1.0,  # Weight for intrinsic rewards before being added to extrinsic ones.
+        "lr": 0.001,  # Learning rate of the curiosity (ICM) module.
+        "feature_dim": 53,  # Dimensionality of the generated feature vectors.
+        # Setup of the feature net (used to encode observations into feature (latent) vectors).
+        "feature_net_config": {
+            "fcnet_hiddens": [],
+            "fcnet_activation": "relu",
+        },
+        "inverse_net_hiddens": [256],  # Hidden layers of the "inverse" model.
+        "inverse_net_activation": "relu",  # Activation of the "inverse" model.
+        "forward_net_hiddens": [256],  # Hidden layers of the "forward" model.
+        "forward_net_activation": "relu",  # Activation of the "forward" model.
+        "beta": 0.2,  # Weight for the "forward" loss (beta) over the "inverse" loss (1.0 - beta).
+        # Specify, which exploration sub-type to use (usually, the algo's "default"
+        # exploration, e.g. EpsilonGreedy for DQN, StochasticSampling for PG/SAC).
+        "sub_exploration": {
+            "type": "StochasticSampling",
+        }
+    }
 }
 
 PPO_Curiosity_config = Trainer.merge_trainer_configs(
@@ -288,7 +335,7 @@ PPO_Curiosity_config = Trainer.merge_trainer_configs(
         "num_gpus": int(os.environ.get("RLLIB_NUM_GPUS", "0")),
         "model": {
             "custom_model": "CybORG_Torch",
-            'fcnet_hiddens': [256, 256, 256],
+            'fcnet_hiddens': [256, 256],
             "vf_share_layers": False,
         },
         "lr": 0.0005,

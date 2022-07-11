@@ -19,6 +19,7 @@ from ray.rllib.models.tf.attention_net import GTrXLNet
 
 from loadagent import LoadBlueAgent
 #from loadHierAgent import LoadBlueAgent
+#from loadLSTMagent import LoadBlueAgent
 MAX_EPS = 1000
 agent_name = 'Blue'
 
