@@ -19,6 +19,8 @@ import random
 from sub_agents import sub_agents
 from ray.rllib.agents.trainer import Trainer
 from ray.rllib.agents.ppo import DEFAULT_CONFIG
+from configs import *
+from neural_nets import *
 
 class TorchModel(TorchModelV2, torch.nn.Module):
     def __init__(self, obs_space, action_space, num_outputs, model_config,
@@ -62,58 +64,52 @@ class HierEnv(gym.Env):
         self.BL_checkpoint_pointer = two_up +  sub_agents['B_line_trained']
         self.RM_checkpoint_pointer = two_up + sub_agents['RedMeander_trained']
 
-        agent_config=Trainer.merge_trainer_configs(
-                DEFAULT_CONFIG, {
-                    "env": CybORGAgent,
-                    "env_config": {
-                        "null": 0,
-                    },
-                    # Use GPUs iff `RLLIB_NUM_GPUS` env various set to > 0.
-                    "num_gpus": int(os.environ.get("RLLIB_NUM_GPUS", "0")),
-                    "model": {
-                        "custom_model": "CybORG_PPO_Model",
-                        "vf_share_layers": False,
-                    },
-                    "lr": 0.0005,
-                    # "momentum": tune.uniform(0, 1),
-                    "num_workers": 0,  # parallelism
-                    "framework": "torch",  # May also use "tf2", "tfe" or "torch" if supported
-                    "eager_tracing": True,
-                    # In order to reach similar execution speed as with static-graph mode (tf default)
-                    "vf_loss_coeff": 1,  # Scales down the value function loss for better comvergence with PPO
-                    "clip_param": 0.5,
-                    "vf_clip_param": 5.0,
-                    "in_evaluation": True,
-                    'explore': False,
-                    "exploration_config": {
-                        "type": "Curiosity",  # <- Use the Curiosity module for exploring.
-                        "eta": 1.0,  # Weight for intrinsic rewards before being added to extrinsic ones.
-                        "lr": 0.001,  # Learning rate of the curiosity (ICM) module.
-                        "feature_dim": 53,  # Dimensionality of the generated feature vectors.
-                        # Setup of the feature net (used to encode observations into feature (latent) vectors).
-                        "feature_net_config": {
-                            "fcnet_hiddens": [],
-                            "fcnet_activation": "relu",
-                        },
-                        "inverse_net_hiddens": [256],  # Hidden layers of the "inverse" model.
-                        "inverse_net_activation": "relu",  # Activation of the "inverse" model.
-                        "forward_net_hiddens": [256],  # Hidden layers of the "forward" model.
-                        "forward_net_activation": "relu",  # Activation of the "forward" model.
-                        "beta": 0.2,  # Weight for the "forward" loss (beta) over the "inverse" loss (1.0 - beta).
-                        # Specify, which exploration sub-type to use (usually, the algo's "default"
-                        # exploration, e.g. EpsilonGreedy for DQN, StochasticSampling for PG/SAC).
-                        "sub_exploration": {
-                            "type": "StochasticSampling",
-                        }
-                    }
-                })
+        """RM_config  = {
+        "env": CybORGAgent,
+        "env_config": {
+            "null": 0,
+        },
+        # Use GPUs iff `RLLIB_NUM_GPUS` env var set to > 0.
+        "num_gpus": int(os.environ.get("RLLIB_NUM_GPUS", "0")),
+        "model": {
+            "custom_model": "CybORG_Torch",
+            'fcnet_hiddens': [256, 256, 52],
+            "vf_share_layers": False,
+            'use_lstm': True,
+        },
+        "lr": 0.0005,
+        # "momentum": tune.uniform(0, 1),
+        "num_workers": 0,  # parallelism
+        "framework": "torch",  # May also use "tf2", "tfe" or "torch" if supported
+        "eager_tracing": True,
+        # In order to reach similar execution speed as with static-graph mode (tf default)
+        "vf_loss_coeff": 1,  # Scales down the value function loss for better comvergence with PPO
+        "clip_param": 0.5,
 
-        ModelCatalog.register_custom_model("CybORG_PPO_Model", TorchModel)
+        "vf_clip_param": 5.0,
 
+        }"""
+        RM_config = LSTM_config
+        RM_config["num_workers"] = 1
+        RM_config["in_evaluation"] = True
+        RM_config["explore"] = False
+        RM_config["create_env_on_driver"] = False
+        RM_config['num_workers'] = 0
+
+        BL_config = PPO_Curiosity_config
+        BL_config['model']['fcnet_hiddens'] = [256, 256, 256]
+        BL_config["in_evaluation"] = True
+        BL_config["explore"] = False
+
+        ModelCatalog.register_custom_model("CybORG_Torch", TorchModel)
+        ModelCatalog.register_custom_model("CybORG_GTrXL_Model", GTrXLNet)
         # Restore the checkpointed model
-        self.RM_def = ppo.PPOTrainer(config=agent_config, env=CybORGAgent)
+        self.BL_def = ppo.PPOTrainer(config=BL_config, env=CybORGAgent)
+        print('loaded BL')
+        self.RM_def = ppo.PPOTrainer(config=RM_config, env=CybORGAgent)
         #sub_config['env'] = CybORGAgent
-        self.BL_def = ppo.PPOTrainer(config=agent_config, env=CybORGAgent)
+        print('initalising agents...')
+        self.RM_def.load_checkpoint(self.RM_checkpoint_pointer)
         self.RM_def.restore(self.RM_checkpoint_pointer)
         self.BL_def.restore(self.BL_checkpoint_pointer)
 
@@ -129,8 +125,13 @@ class HierEnv(gym.Env):
         #defuault observation is 4 lots of nothing
         self.observation = np.zeros((self.mem_len,52))
 
+        self.state = [np.zeros(256, np.float32),
+                      np.zeros(256, np.float32)]
+
         self.action = None
         self.env = self.BLenv
+        self.adversary = 'B_line'
+        print('Hier env set up')
 
     # reset doesnt reset the sliding window of the agent so it can differentiate between
     # agents across episode boundaries
@@ -139,6 +140,8 @@ class HierEnv(gym.Env):
         #rest the environments of each attacker
         self.BLenv.reset()
         self.RMenv.reset()
+        self.state=[np.zeros(256, np.float32),
+               np.zeros(256, np.float32)]
         if random.choice([0,1]) == 0:
             self.env = self.BLenv
         else:
@@ -150,9 +153,14 @@ class HierEnv(gym.Env):
         if action == 0:
             # get action from agent trained against the B_lineAgent
             agent_action = self.BL_def.compute_single_action(self.observation[-1:])
+
+            #keep track of the lstm state for later use
+            _, self.state, _ = self.RM_def.compute_single_action(self.observation[-1:], self.state)
         elif action == 1:
             # get action from agent trained against the RedMeanderAgent
-            agent_action = self.RM_def.compute_single_action(self.observation[-1:])
+            agent_action, self.state, _ = self.RM_def.compute_single_action(self.observation[-1:], self.state)
+            #self.state = state
+            #agent_action = self.RM_def.compute_single_action(self.observation[-1:])
         else:
             print('something went terribly wrong, old sport')
         observation, reward, done, info = self.env.step(agent_action)

@@ -1,26 +1,9 @@
-import os
-from pprint import pprint
-import os.path as path
-import numpy as np
-import ray
-from ray.rllib.agents.dqn.apex import APEX_DEFAULT_CONFIG
-from ray.rllib.agents.trainer import Trainer
-from ray.rllib.models import ModelCatalog
-from ray.rllib.env.env_context import EnvContext
-import ray.rllib.agents.ppo as ppo
-import ray.rllib.agents.dqn as dqn
 
-from CybORG import CybORG
-from CybORG.Agents.Wrappers.TrueTableWrapper import true_obs_to_table
-
-from train_hier import CustomModel, TorchModel
-from CybORGHier import HierEnv
+from neural_nets import *
+from hier_env import HierEnv
 import os
 from CybORG.Agents import B_lineAgent, SleepAgent, RedMeanderAgent
-from sub_agents import sub_agents
-from CybORGAgent import CybORGAgent
-from ray.rllib.agents.ppo.ppo import DEFAULT_CONFIG
-
+from configs import *
 class LoadBlueAgent:
 
     """
@@ -34,7 +17,7 @@ class LoadBlueAgent:
         # Load checkpoint locations of each agent
         two_up = path.abspath(path.join(__file__, "../../../"))
         #self.CTRL_checkpoint_pointer = two_up + '/log_dir/rl_controller_scaff/PPO_HierEnv_1e996_00000_0_2022-01-27_13-43-33/checkpoint_000212/checkpoint-212'
-        self.CTRL_checkpoint_pointer = two_up + '/logs/PPO_Hier_20220410_184257/PPO_HierEnv_a83db_00000_0_2022-04-10_18-42-57/checkpoint_001316/checkpoint-1316'
+        self.CTRL_checkpoint_pointer = two_up + '/logs/hier/PPO_hier_2022-07-11_10-57-15/PPO_HierEnv_d78d3_00000_0_2022-07-11_10-57-15/checkpoint_000255/checkpoint-255'
         self.BL_checkpoint_pointer = two_up + sub_agents['B_line_trained']
         self.RM_checkpoint_pointer = two_up + sub_agents['RedMeander_trained']
 
@@ -44,88 +27,34 @@ class LoadBlueAgent:
         print("Using checkpoint file (B-line): {}".format(self.BL_checkpoint_pointer))
         print("Using checkpoint file (Red Meander): {}".format(self.RM_checkpoint_pointer))
 
-        config = Trainer.merge_trainer_configs(
-            DEFAULT_CONFIG,
-            {
-            "env": HierEnv,
-            "env_config": {
-                "null": 0,
-            },
-            # Use GPUs iff `RLLIB_NUM_GPUS` env various set to > 0.
-            "num_gpus": int(os.environ.get("RLLIB_NUM_GPUS", "0")),
-            "model": {
-                "custom_model": "CybORG_hier_Model",
-                "vf_share_layers": True,
-            },
-            "lr": 0.0001,
-            #"momentum": tune.uniform(0, 1),
-            "num_workers": 4,  # parallelism
-            "framework": "torch", # May also use "tf2", "tfe" or "torch" if supported
-            "eager_tracing": True, # In order to reach similar execution speed as with static-graph mode (tf default)
-            "vf_loss_coeff": 0.01,  # Scales down the value function loss for better comvergence with PPO
-             "in_evaluation": True,
-            'explore': False
-        })
+        config = PPO_Curiosity_config
+        config['model']['fcnet_hiddens'] = [256, 256]
+        config['env'] = HierEnv
 
         # Restore the controller model
         self.controller_agent = ppo.PPOTrainer(config=config, env=HierEnv)
         self.controller_agent.restore(self.CTRL_checkpoint_pointer)
         self.observation = np.zeros((HierEnv.mem_len,52))
 
-        subagent_config = Trainer.merge_trainer_configs(
-            DEFAULT_CONFIG, {
-                "env": CybORGAgent,
-                "env_config": {
-                    "null": 0,
-                },
-                # Use GPUs iff `RLLIB_NUM_GPUS` env various set to > 0.
-                "num_gpus": int(os.environ.get("RLLIB_NUM_GPUS", "0")),
-                "model": {
-                    "custom_model": "CybORG_PPO_Model",
-                    "vf_share_layers": False,
-                },
-                "lr": 0.0005,
-                # "momentum": tune.uniform(0, 1),
-                "num_workers": 0,  # parallelism
-                "framework": "torch",  # May also use "tf2", "tfe" or "torch" if supported
-                "eager_tracing": True,
-                # In order to reach similar execution speed as with static-graph mode (tf default)
-                "vf_loss_coeff": 1,  # Scales down the value function loss for better comvergence with PPO
-                "clip_param": 0.5,
-                "vf_clip_param": 5.0,
-                "in_evaluation": True,
-                'explore': False,
-                "exploration_config": {
-                    "type": "Curiosity",  # <- Use the Curiosity module for exploring.
-                    "eta": 1.0,  # Weight for intrinsic rewards before being added to extrinsic ones.
-                    "lr": 0.001,  # Learning rate of the curiosity (ICM) module.
-                    "feature_dim": 53,  # Dimensionality of the generated feature vectors.
-                    # Setup of the feature net (used to encode observations into feature (latent) vectors).
-                    "feature_net_config": {
-                        "fcnet_hiddens": [],
-                        "fcnet_activation": "relu",
-                    },
-                    "inverse_net_hiddens": [256],  # Hidden layers of the "inverse" model.
-                    "inverse_net_activation": "relu",  # Activation of the "inverse" model.
-                    "forward_net_hiddens": [256],  # Hidden layers of the "forward" model.
-                    "forward_net_activation": "relu",  # Activation of the "forward" model.
-                    "beta": 0.2,  # Weight for the "forward" loss (beta) over the "inverse" loss (1.0 - beta).
-                    # Specify, which exploration sub-type to use (usually, the algo's "default"
-                    # exploration, e.g. EpsilonGreedy for DQN, StochasticSampling for PG/SAC).
-                    "sub_exploration": {
-                        "type": "StochasticSampling",
-                    }
-                }
-            })
+        RM_config = LSTM_config
+        RM_config["in_evaluation"] = True
+        RM_config["explore"] = False
+
+        BL_config = PPO_Curiosity_config
+        BL_config['model']['fcnet_hiddens'] = [256, 256, 256]
+        BL_config["in_evaluation"] = True
+        BL_config["explore"] = False
 
         #load agent trained against RedMeanderAgent
-        self.RM_def = ppo.PPOTrainer(config=subagent_config, env=CybORGAgent)
+        self.RM_def = ppo.PPOTrainer(config=RM_config, env=CybORGAgent)
         self.RM_def.restore(self.RM_checkpoint_pointer)
         #load agent trained against B_lineAgent
-        self.BL_def = ppo.PPOTrainer(config=subagent_config, env=CybORGAgent)
+        self.BL_def = ppo.PPOTrainer(config=BL_config, env=CybORGAgent)
         self.BL_def.restore(self.BL_checkpoint_pointer)
 
-        self.red_agent=-1
+        #self.red_agent=-1
+        self.state = [np.zeros(256, np.float32),
+                      np.zeros(256, np.float32)]
 
 
     def set_red_agent(self, red_agent):
@@ -138,17 +67,27 @@ class LoadBlueAgent:
         self.observation[HierEnv.mem_len-1] = obs           # Replace what's on the rightmost position
 
         #select agent to compute action
-        if self.red_agent == B_lineAgent or self.red_agent == SleepAgent:
+        """ if self.red_agent == B_lineAgent or self.red_agent == SleepAgent:
             agent_to_select = 0
         else: #RedMeanderAgent
-            agent_to_select = 1
+            agent_to_select = 1"""
+        agent_to_select = self.controller_agent.compute_single_action(self.observation)
 
-        #self.controller_agent.compute_single_action(self.observation)
-        #agent_to_select = 1#np.random.choice([0,1]) # hard-coded meander agent only
         if agent_to_select == 0:
             # get action from agent trained against the B_lineAgent
             agent_action = self.BL_def.compute_single_action(self.observation[-1:])
+
+            # keep track of the lstm state for later use
+            _, self.state, _ = self.RM_def.compute_single_action(self.observation[-1:], self.state)
         elif agent_to_select == 1:
             # get action from agent trained against the RedMeanderAgent
-            agent_action = self.RM_def.compute_single_action(self.observation[-1:])
-        return agent_action#, agent_to_select
+            agent_action, self.state, _ = self.RM_def.compute_single_action(self.observation[-1:], self.state)
+            # self.state = state
+            # agent_action = self.RM_def.compute_single_action(self.observation[-1:])
+        else:
+            print('something went terribly wrong, old sport')
+        return agent_action, agent_to_select
+
+    def end_episode(self):
+        self.state = [np.zeros(256, np.float32),
+               np.zeros(256, np.float32)]

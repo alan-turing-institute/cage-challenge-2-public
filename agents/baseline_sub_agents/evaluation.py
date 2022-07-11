@@ -17,8 +17,9 @@ from CybORG.Agents.Wrappers import ChallengeWrapper
 from ray.rllib.models.tf.attention_net import GTrXLNet
 
 
-from loadagent import LoadBlueAgent
-#from loadHierAgent import LoadBlueAgent
+#from loadagent import LoadBlueAgent
+from loadController import LoadBlueAgent
+from loadSemiHeuristicController import LoadSemiHeuristicBlueAgent as LoadBlueAgent
 #from loadLSTMagent import LoadBlueAgent
 MAX_EPS = 1000
 agent_name = 'Blue'
@@ -35,7 +36,7 @@ if __name__ == "__main__":
     scenario = 'Scenario2'
     commit_hash = get_git_revision_hash()
     # ask for a name
-    name = 'Mindrake ' #input('Name: ')
+    name = 'Myles Foley' #input('Name: ')
     # ask for a team
     team = 'Mindrake' #input("Team: ")
     # ask for a name for the agent
@@ -82,7 +83,7 @@ if __name__ == "__main__":
                 # cyborg.env.env.tracker.render()
                 for j in range(num_steps):
                     #action, agent_selected = agent.get_action(observation, action_space)
-                    action = agent.get_action(observation, action_space)
+                    action, agent_to_select = agent.get_action(observation, action_space)
                     observation, rew, done, info = wrapped_cyborg.step(action)
                     # result = cyborg.step(agent_name, action)
 
@@ -90,12 +91,15 @@ if __name__ == "__main__":
                     #true_state = cyborg.get_agent_state('True')
                     #true_table = true_obs_to_table(true_state,cyborg)
                     #print(true_table)
-
+                    if agent_to_select == 0:
+                        agent_to_select = 'Meander'
+                    else:
+                        agent_to_select = 'BLine'
                     r.append(rew)
                     r_step[j+1].append(rew)
                     # r.append(result.reward)
                     #agent_selected = 'BLine' if agent_selected == 0 else 'RedMeander'
-                    a.append((str(cyborg.get_last_action('Blue')), str(cyborg.get_last_action('Red'))))
+                    a.append((str(cyborg.get_last_action('Blue')), str(cyborg.get_last_action('Red')), str(agent_to_select)))
                 agent.end_episode()    # Don't forget to dangermouse
                 total_reward.append(sum(r))
                 actions.append(a)

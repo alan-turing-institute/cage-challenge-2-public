@@ -5,6 +5,6 @@
 #              }
 
 
-sub_agents = {'B_line_trained':'/logs/PPO_B_lineAgent_2022-04-08_11-57-03/PPO_CybORGAgent_9f856_00000_0_2022-04-08_11-57-03/checkpoint_001522/checkpoint-1522',
-              'RedMeander_trained':'/logs/PPO_RedMeanderAgent_2022-04-09_09-16-56/PPO_CybORGAgent_6ba03_00000_0_2022-04-09_09-16-56/checkpoint_002059/checkpoint-2059'
+sub_agents = {'B_line_trained':'/logs/various/PPO_curiosity_3_layer_B_lineAgent_2022-06-06_12-46-35/PPO_CybORGAgent_51413_00000_0_2022-06-06_12-46-35/checkpoint_001018/checkpoint-1018',
+              'RedMeander_trained':'/logs/various/PPO_LSTM_RedMeanderAgent_2022-07-06_16-32-36/PPO_CybORGAgent_dcaaa_00000_0_2022-07-06_16-32-36/checkpoint_001829/checkpoint-1829'
               }
