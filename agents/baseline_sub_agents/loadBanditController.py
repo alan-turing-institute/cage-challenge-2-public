@@ -1,12 +1,13 @@
 import numpy as np
-
+import pickle as pkl
 from neural_nets import *
 from hier_env import HierEnv
 import os
 
 from CybORG.Agents import B_lineAgent, SleepAgent, RedMeanderAgent
 from configs import *
-class LoadSemiHeuristicBlueAgent:
+from CybORGActionAgent import CybORGActionAgent
+class LoadBanditBlueAgent:
 
     """
     Load the agent model using the latest checkpoint and return it for evaluation
@@ -19,7 +20,7 @@ class LoadSemiHeuristicBlueAgent:
         # Load checkpoint locations of each agent
         two_up = path.abspath(path.join(__file__, "../../../"))
         #self.CTRL_checkpoint_pointer = two_up + '/log_dir/rl_controller_scaff/PPO_HierEnv_1e996_00000_0_2022-01-27_13-43-33/checkpoint_000212/checkpoint-212'
-        self.CTRL_checkpoint_pointer = two_up + '/logs/hier/PPO_hier_2022-07-11_10-57-15/PPO_HierEnv_d78d3_00000_0_2022-07-11_10-57-15/checkpoint_000347/checkpoint-347'
+        self.CTRL_checkpoint_pointer = two_up + '/logs/bandits/controller_bandit_2022-07-15_11-08-56/bandit_controller_15000.pkl'
         self.BL_checkpoint_pointer = two_up + sub_agents['B_line_trained']
         self.RM_checkpoint_pointer = two_up + sub_agents['RedMeander_trained']
 
@@ -34,16 +35,17 @@ class LoadSemiHeuristicBlueAgent:
         config['env'] = HierEnv
 
         # Restore the controller model
-        self.controller_agent = ppo.PPOTrainer(config=config, env=HierEnv)
-        self.controller_agent.restore(self.CTRL_checkpoint_pointer)
-        #self.observation = np.zeros((HierEnv.mem_len,52))
+        with open(self.CTRL_checkpoint_pointer, "rb") as controller_chkpt:  # Must open file in binary mode for pickle
+            #print('Red Agent states loaded from {}'.format(controller_chpt))
+            self.controller = pkl.load(controller_chkpt)
 
+        self.bandit_observation = np.array([], dtype=int)
         RM_config = LSTM_config
         RM_config["in_evaluation"] = True
         RM_config["explore"] = False
 
         BL_config = PPO_Curiosity_config
-        BL_config['model']['fcnet_hiddens'] = [256, 256, 256]
+        #BL_config['model']['fcnet_hiddens'] = [256, 256, 256]
         BL_config["in_evaluation"] = True
         BL_config["explore"] = False
 
@@ -51,7 +53,9 @@ class LoadSemiHeuristicBlueAgent:
         self.RM_def = ppo.PPOTrainer(config=RM_config, env=CybORGAgent)
         self.RM_def.restore(self.RM_checkpoint_pointer)
         #load agent trained against B_lineAgent
-        self.BL_def = ppo.PPOTrainer(config=BL_config, env=CybORGAgent)
+        BL_config['env'] = CybORGActionAgent
+        BL_config["env_config"] = {'agent_name': 'Blue', 'env': None, 'max_steps': 100, 'attacker': B_lineAgent}
+        self.BL_def = ppo.PPOTrainer(config=BL_config, env=CybORGActionAgent)
         self.BL_def.restore(self.BL_checkpoint_pointer)
 
         #self.red_agent=-1
@@ -61,7 +65,7 @@ class LoadSemiHeuristicBlueAgent:
         # heuristics
         self.set = False
         self.observations = []
-        self.adversary = 'B_line'
+        self.adversary = 0
 
 
     def set_red_agent(self, red_agent):
@@ -71,55 +75,47 @@ class LoadSemiHeuristicBlueAgent:
     def get_action(self, obs, action_space):
         #update sliding window
         # discover network services sequence
-        self.observations.append(obs)
+        #self.observations.append(obs)
         self.step += 1
-        if self.step == 4:
-            if any(np.array_equal(host_observation, np.array([1,0,0,0]))for host_observation in self.observations[-1].reshape(13, 4)) \
-                and any(np.array_equal(host_observation, np.array([1,0,0,0]))for host_observation in self.observations[-2].reshape(13, 4)) \
-                    and not np.array_equal(self.observations[-1], self.observations[-2]):
-                self.adversary = 'Meander'
+        if self.step < 5:
+            self.bandit_observation = np.append(self.bandit_observation, obs[2:])
+            #return 0, -1
+        elif self.step == 5:
+            bandit_obs_hashable = ''.join(str(bit) for bit in self.bandit_observation)
+            if '1' not in bandit_obs_hashable:
+                self.adversary = 1
             else:
-                 self.adversary = 'B_line'
+                self.adversary = np.argmax(self.controller[bandit_obs_hashable])
 
-
-        """if self.step == 4 and any(np.array_equal(vector_obs, np.array([1,1,0,1])) or np.array_equal(vector_obs, np.array([0,0,0,1])) or np.array_equal(vector_obs, np.array([1,0,0,1])) for vector_obs in obs.reshape(13, 4)):
-            self.adversary = 'B_line'
-            self.set = True
-        elif self.set == False and (self.step == 4 or self.step == 5) and any(not np.array_equal(vector_obs, np.array([1,1,0,1])) and not np.array_equal(vector_obs, np.array([0,0,0,1])) and not np.array_equal(vector_obs, np.array([1,0,0,1])) for vector_obs in obs.reshape(13, 4)):
-            self.adversary = 'Meander'
-            self.set = True"""
-        #self.adversary = 'Meander'
-        #print(self.adversary)
-
-        #self.observation = np.roll(self.observation, -1, 0) # Shift left by one to bring the oldest timestep on the rightmost position
-        #self.observation[HierEnv.mem_len-1] = obs           # Replace what's on the rightmost position
 
         #select agent to compute action
         """ if self.red_agent == B_lineAgent or self.red_agent == SleepAgent:
             agent_to_select = 0
         else: #RedMeanderAgent
             agent_to_select = 1"""
-        agent_to_select = self.controller_agent.compute_single_action(obs)
-        if agent_to_select == 0 and self.adversary != 'Meander':
+        #agent_to_select = self.controller_agent.compute_single_action(obs)
+        if self.adversary == 0:
             #print('b_line defence')
             # get action from agent trained against the B_lineAgent
 
             # keep track of the lstm state for later use
-            _, self.state, _ = self.RM_def.compute_single_action(obs, self.state)
+            _, self.state, _ = self.RM_def.compute_single_action(obs[2:], self.state)
             agent_action = self.BL_def.compute_single_action(obs)
-        elif agent_to_select == 1 or self.adversary == 'Meander':
+        elif self.adversary == 1:
             # get action from agent trained against the RedMeanderAgent
-            agent_action, state, _ = self.RM_def.compute_single_action(obs, self.state)
+            agent_action, state, _ = self.RM_def.compute_single_action(obs[2:], self.state)
             #print('meander defence')
             self.state = state
             # agent_action = self.RM_def.compute_single_action(self.observation[-1:])
         else:
             print('something went terribly wrong, old sport')
-        return agent_action, agent_to_select
+        return agent_action, self.adversary
 
     def end_episode(self):
         self.set = False
         self.state = [np.zeros(256, np.float32),
                np.zeros(256, np.float32)]
-        self.observations = []
+        self.bandit_observation = np.array([], dtype=int)
+        #self.observations = []
+        self.adversary = 0
         self.step = 0

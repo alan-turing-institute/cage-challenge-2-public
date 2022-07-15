@@ -20,16 +20,16 @@ class CybORGActionAgent(Env, BaseWrapper):
         self.agent_name = config['agent_name']
         if config['env'] is not None:
             self.cyborg = config['env']
-            agents = {
-                'Red': config['agents']  # , #RedMeanderAgent, 'Green': GreenAgent
+            self.agents = {
+                'Red': config['attacker']  # , #RedMeanderAgent, 'Green': GreenAgent
             }
         else:
             path = str(inspect.getfile(CybORG))
             path = path[:-10] + '/Shared/Scenarios/Scenario2.yaml'
-            agents = {
-                'Red': RedMeanderAgent#B_lineAgent  # , #RedMeanderAgent, 'Green': GreenAgent
+            self.agents = {
+                'Red': config['attacker']#B_lineAgent  # , #RedMeanderAgent, 'Green': GreenAgent
             }
-            self.cyborg = CybORG(path, 'sim', agents=agents)
+            self.cyborg = CybORG(path, 'sim', agents=self.agents)
 
         #self.agent_name = self.agent_name
         self.env = BlueTableWrapper(self.cyborg, output_mode='vector')

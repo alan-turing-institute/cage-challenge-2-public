@@ -86,7 +86,8 @@ if __name__ == "__main__":
     path = path[:-10] + '/Shared/Scenarios/Scenario2.yaml'
 
     #cyborg = CybORG(path, 'sim', agents={'Red': B_lineAgent})
-    config["env_config"] = {'agent_name': 'Blue', 'env':None, 'max_steps': 100}
+    attacker = B_lineAgent
+    config["env_config"] = {'agent_name': 'Blue', 'env':None, 'max_steps': 100, 'attacker':attacker}
 
     #from CybORGMultiAdversaryAgent import CybORGAgent
     #config['env'] = CybORGAgent
@@ -94,13 +95,13 @@ if __name__ == "__main__":
     #config['model']['use_lstm'] = False
     stop = {
         "training_iteration": 100000,   # The number of times tune.report() has been called
-        "timesteps_total": 5000000,   # Total number of timesteps
+        "timesteps_total": 10000000,   # Total number of timesteps
         "episode_reward_mean": -0.1, # When to stop.. it would be great if we could define this in terms
                                     # of a more complex expression which incorporates the episode reward min too
                                     # There is a lot of variance in the episode reward min
     }
 
-    checkpoint = '/Users/mylesfoley/Desktop/Imperial/git/turing/cage-challenge-2/logs/various/PPO_curiosity_2_layer_2022-07-08_17-25-48/PPO_CybORGAgent_a039e_00000_0_2022-07-08_17-25-48/checkpoint_001250/checkpoint-1250'
+    checkpoint = '/Users/mylesfoley/Desktop/Imperial/git/turing/cage-challenge-2/logs/various/PPO_action_knowledge_B_lineAgent_2022-07-12_16-27-11/PPO_CybORGActionAgent_1972d_00000_0_2022-07-12_16-27-11/checkpoint_000994/checkpoint-994'
     #local_dir_resume = log_dir + 'PPO_CUR_2022-02-24_MEANDER_3M/PPO_CybORGAgent_3ec94_00000_0_2022-02-24_18-04-44/'
     #agent = ppo.PPOTrainer(config=config, env=CybORGAgent)
     #agent.restore(checkpoint)
@@ -114,11 +115,11 @@ if __name__ == "__main__":
     algo = ppo.PPOTrainer
     analysis = tune.run(algo, # Algo to use - alt: ppo.PPOTrainer, impala.ImpalaTrainer
                         config=config,
-                        name=algo.__name__ + '_action_knowledge_' +CybORGAgent.agents['Red'].__name__+ '_' + time.strftime("%Y-%m-%d_%H-%M-%S"),
+                        name=algo.__name__ + '_action_knowledge_' +attacker.__name__+ '_' + time.strftime("%Y-%m-%d_%H-%M-%S"),
                         #name=algo.__name__ + '_curiosity_2_layer_' + time.strftime("%Y-%m-%d_%H-%M-%S"),
                         local_dir=log_dir,
                         stop=stop,
-                        #restore=checkpoint,
+                        restore=checkpoint,
                         checkpoint_at_end=True,
                         checkpoint_freq=1,
                         keep_checkpoints_num=3,
