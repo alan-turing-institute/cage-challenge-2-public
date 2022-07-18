@@ -64,6 +64,9 @@ def init_bandit(epsilon=0.0001):
 
 Q, N, rewards = init_bandit(EPSILON)
 
+import pandas as pd
+
+dataset = pd.DataFrame(['observation', 'label'])
 
 for episode in range(N_EPISODES):
     bandit_obs = np.array([], dtype=int)
@@ -85,6 +88,8 @@ for episode in range(N_EPISODES):
         bandit_obs = np.append(bandit_obs, blue_obs)
         blue_obs, rew, done, info = current_env.step(0)
     bandit_obs = ''.join(str(bit) for bit in bandit_obs)
+
+    dataset.append(bandit_obs, attacker)
 
     if random.uniform(0, 1) < EPSILON:
         action = random.choice(action_selector)

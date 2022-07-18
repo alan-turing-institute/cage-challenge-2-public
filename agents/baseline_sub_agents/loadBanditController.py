@@ -82,10 +82,7 @@ class LoadBanditBlueAgent:
             #return 0, -1
         elif self.step == 5:
             bandit_obs_hashable = ''.join(str(bit) for bit in self.bandit_observation)
-            if '1' not in bandit_obs_hashable:
-                self.adversary = 1
-            else:
-                self.adversary = np.argmax(self.controller[bandit_obs_hashable])
+            self.adversary = np.argmax(self.controller[bandit_obs_hashable])
 
 
         #select agent to compute action
@@ -107,6 +104,9 @@ class LoadBanditBlueAgent:
             #print('meander defence')
             self.state = state
             # agent_action = self.RM_def.compute_single_action(self.observation[-1:])
+        elif self.adversary == 2:
+            agent_action = 0
+
         else:
             print('something went terribly wrong, old sport')
         return agent_action, self.adversary

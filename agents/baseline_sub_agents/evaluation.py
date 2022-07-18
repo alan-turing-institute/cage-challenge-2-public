@@ -17,15 +17,21 @@ from CybORG.Agents.Wrappers import ChallengeWrapper
 from ray.rllib.models.tf.attention_net import GTrXLNet
 
 
-#from loadagent import LoadBlueAgent
-from loadController import LoadBlueAgent
-from loadSemiHeuristicController import LoadSemiHeuristicBlueAgent as LoadBlueAgent
+from loadagent import LoadBlueAgent
+#from loadController import LoadBlueAgent
+#from loadSemiHeuristicController import LoadSemiHeuristicBlueAgent as LoadBlueAgent
+#from loadHeuristicController import LoadHeuristicBlueAgent as LoadBlueAgent
+from loadBanditController import LoadBanditBlueAgent as LoadBlueAgent
 #from loadLSTMagent import LoadBlueAgent
-MAX_EPS = 1000
+from CybORGActionAgent import CybORGActionAgent
+MAX_EPS = 100
 agent_name = 'Blue'
 
 def wrap(env):
     return ChallengeWrapper(env=env, agent_name='Blue')
+
+def custom_wrap(config):
+    return CybORGActionAgent(config)
 
 def get_git_revision_hash() -> str:
     return subprocess.check_output(['git', 'rev-parse', 'HEAD']).decode('ascii').strip()
@@ -68,7 +74,9 @@ if __name__ == "__main__":
             #print(type(list(r_step)[0]))
 
             cyborg = CybORG(path, 'sim', agents={'Red': red_agent})
-            wrapped_cyborg = ChallengeWrapper(env=cyborg, agent_name='Blue') #wrap(cyborg)
+            #wrapped_cyborg = ChallengeWrapper(env=cyborg, agent_name='Blue') #wrap(cyborg)
+
+            wrapped_cyborg = custom_wrap({'agent_name': 'Blue', 'env':cyborg, 'max_steps': 100, 'attacker': red_agent})
 
             observation = wrapped_cyborg.reset()
             # observation = cyborg.reset().observation
@@ -110,7 +118,7 @@ if __name__ == "__main__":
             print(f'Average reward for red agent {red_agent.__name__} and steps {num_steps} is: {mean(total_reward)} with a standard deviation of {stdev(total_reward)}')
             #print(sum(r_step.values()))
             #include average rewards per step
-            print(f'Average reward per step for red agent {red_agent.__name__} and steps {num_steps} is:' +str(r_step))
+            print(f'Average reward per step for red agent {red_agent.__name__} and steps {num_steps} is: ' +str(r_step))
             with open(file_name, 'a+') as data:
                 data.write(f'steps: {num_steps}, adversary: {red_agent.__name__}, mean: {mean(total_reward)}, standard deviation {stdev(total_reward)}\n')
                 for act, sum_rew in zip(actions, total_reward):
