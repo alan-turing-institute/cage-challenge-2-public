@@ -118,7 +118,7 @@ if __name__ == "__main__":
             print(f'Average reward for red agent {red_agent.__name__} and steps {num_steps} is: {mean(total_reward)} with a standard deviation of {stdev(total_reward)}')
             #print(sum(r_step.values()))
             #include average rewards per step
-            print(f'Average reward per step for red agent {red_agent.__name__} and steps {num_steps} is: ' +str(r_step))
+            #print(f'Average reward per step for red agent {red_agent.__name__} and steps {num_steps} is: ' +str(r_step))
             with open(file_name, 'a+') as data:
                 data.write(f'steps: {num_steps}, adversary: {red_agent.__name__}, mean: {mean(total_reward)}, standard deviation {stdev(total_reward)}\n')
                 for act, sum_rew in zip(actions, total_reward):
