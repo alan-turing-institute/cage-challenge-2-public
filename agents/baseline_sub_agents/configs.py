@@ -275,6 +275,8 @@ LSTM_config = {
     "framework": 'torch',
 }
 
+
+
 LSTM_curiosity_config = {
     "env": CybORGAgent,
     "env_config": {
@@ -370,3 +372,28 @@ PPO_Curiosity_config = Trainer.merge_trainer_configs(
             }
         }
     })
+
+small_nn_config = {
+    "env": CybORGAgent,
+    "env_config": {
+        "null": 0,
+    },
+    "gamma": 0.99,
+    # Use GPUs iff `RLLIB_NUM_GPUS` env var set to > 0.
+    "num_gpus": int(os.environ.get("RLLIB_NUM_GPUS", 0)),
+    "num_envs_per_worker": 20,
+    "entropy_coeff": 0.001,
+    "num_sgd_iter": 10,
+    #"vf_loss_coeff": 1e-5,
+    #"vf_share_layers": False,
+    "model": {
+        # Attention net wrapping (for tf) can already use the native keras
+        # model versions. For torch, this will have no effect.
+        "_use_default_native_models": True,
+        "custom_model": "CybORG_Torch",
+        'fcnet_hiddens': [104, 104, 52],
+        "use_attention": not True,
+
+    },
+    "framework": 'torch',
+}
