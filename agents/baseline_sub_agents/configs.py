@@ -7,7 +7,7 @@ from ray.rllib.agents.ppo.ppo import DEFAULT_CONFIG as PPO_CONFIG
 from ray.rllib.models import ModelCatalog
 from ray.rllib.agents.trainer import Trainer
 from CybORGAgent import *
-from CybORGMAML import *
+#from CybORGMAML import *
 import os
 from neural_nets import *
 from ray.rllib.models.tf.attention_net import GTrXLNet
@@ -155,28 +155,6 @@ SAC_config = Trainer.merge_trainer_configs(
     }
 )
 
-#has to use the CybORGMAMLWrapped environment to run correctly
-MAML_config = Trainer.merge_trainer_configs(
-    MAML_CONFIG,
-    {
-        "env": CybORGMAMLWrapped,
-
-        # Use GPUs iff `RLLIB_NUM_GPUS` env various set to > 0.
-        "num_gpus": int(os.environ.get("RLLIB_NUM_GPUS", "0")),
-        "model": {
-            "custom_model": "CybORG_Torch",
-            # "vf_share_layers": False,
-        },
-        "lr": 0.0005,
-        # "momentum": tune.uniform(0, 1),
-        "num_workers": 2,  # parallelism
-        "framework": "torch",  # May also use "tf2", "tfe" or "torch" if supported
-        "eager_tracing": True,  # In order to reach similar execution speed as with static-graph mode (tf default)
-        # "vf_loss_coeff": 1,  # Scales down the value function loss for better comvergence with PPO
-        # "clip_param": 0.5,
-        # "vf_clip_param": 5.0,
-    }
-)
 
 GTrXL_config = Trainer.merge_trainer_configs(
     PPO_CONFIG,

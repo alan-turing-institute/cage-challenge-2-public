@@ -1,12 +1,14 @@
 import numpy as np
 import pickle as pkl
 from neural_nets import *
-from hier_env import HierEnv
 import os
-
+from sub_agents import *
+import os.path as path
 from CybORG.Agents import B_lineAgent, SleepAgent, RedMeanderAgent
 from configs import *
 from CybORGActionAgent import CybORGActionAgent
+import ray.rllib.agents.ppo as ppo
+from ray.rllib.models import ModelCatalog
 class LoadBanditBlueAgent:
 
     """
@@ -29,10 +31,6 @@ class LoadBanditBlueAgent:
         print("Using checkpoint file (Controller): {}".format(self.CTRL_checkpoint_pointer))
         print("Using checkpoint file (B-line): {}".format(self.BL_checkpoint_pointer))
         print("Using checkpoint file (Red Meander): {}".format(self.RM_checkpoint_pointer))
-
-        config = PPO_Curiosity_config
-        config['model']['fcnet_hiddens'] = [256, 256]
-        config['env'] = HierEnv
 
         # Restore the controller model
         with open(self.CTRL_checkpoint_pointer, "rb") as controller_chkpt:  # Must open file in binary mode for pickle

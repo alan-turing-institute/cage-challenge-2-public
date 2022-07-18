@@ -17,7 +17,7 @@ from CybORG.Agents.Wrappers import ChallengeWrapper
 from ray.rllib.models.tf.attention_net import GTrXLNet
 
 
-from loadagent import LoadBlueAgent
+#from loadagent import LoadBlueAgent
 #from loadController import LoadBlueAgent
 #from loadSemiHeuristicController import LoadSemiHeuristicBlueAgent as LoadBlueAgent
 #from loadHeuristicController import LoadHeuristicBlueAgent as LoadBlueAgent
