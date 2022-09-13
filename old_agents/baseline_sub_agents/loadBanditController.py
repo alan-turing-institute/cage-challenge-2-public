@@ -9,7 +9,6 @@ from configs import *
 from CybORGActionAgent import CybORGActionAgent
 import ray.rllib.agents.ppo as ppo
 from ray.rllib.models import ModelCatalog
-from bline_CybORGAgent import CybORGAgent as bline_CybORGAgent
 class LoadBanditBlueAgent:
 
     """
@@ -39,11 +38,11 @@ class LoadBanditBlueAgent:
             self.controller = pkl.load(controller_chkpt)
 
         self.bandit_observation = np.array([], dtype=int)
-        RM_config = meander_config
+        RM_config = LSTM_config
         RM_config["in_evaluation"] = True
         RM_config["explore"] = False
 
-        BL_config = bline_config
+        BL_config = PPO_Curiosity_config
         #BL_config['model']['fcnet_hiddens'] = [256, 256, 256]
         BL_config["in_evaluation"] = True
         BL_config["explore"] = False
@@ -52,9 +51,9 @@ class LoadBanditBlueAgent:
         self.RM_def = ppo.PPOTrainer(config=RM_config, env=CybORGAgent)
         self.RM_def.restore(self.RM_checkpoint_pointer)
         #load agent trained against B_lineAgent
-        BL_config['env'] = bline_CybORGAgent
+        BL_config['env'] = CybORGActionAgent
         BL_config["env_config"] = {'agent_name': 'Blue', 'env': None, 'max_steps': 100, 'attacker': B_lineAgent}
-        self.BL_def = ppo.PPOTrainer(config=BL_config, env=bline_CybORGAgent)
+        self.BL_def = ppo.PPOTrainer(config=BL_config, env=CybORGActionAgent)
         self.BL_def.restore(self.BL_checkpoint_pointer)
 
         #self.red_agent=-1
@@ -96,8 +95,7 @@ class LoadBanditBlueAgent:
 
             # keep track of the lstm state for later use
             _, self.state, _ = self.RM_def.compute_single_action(obs[2:], self.state)
-            bl_obs = self.bits_to_float(obs)
-            agent_action = self.BL_def.compute_single_action(bl_obs)
+            agent_action = self.BL_def.compute_single_action(obs)
         elif self.adversary == 1:
             # get action from agent trained against the RedMeanderAgent
             agent_action, state, _ = self.RM_def.compute_single_action(obs[2:], self.state)
@@ -119,45 +117,3 @@ class LoadBanditBlueAgent:
         #self.observations = []
         self.adversary = 0
         self.step = 0
-
-    def bits_to_float(self, obs):
-        float_list = []
-
-        rest_obs = np.reshape(obs[2:], (13, 4))
-        for host in rest_obs:
-            activity = np.array(host[:2])
-            compromised = np.array(host[2:])
-            if all(activity == [0,0]):
-                value = [0.]
-            elif all(activity == [1,0]):
-                value = [1.]
-            elif all(activity == [1,1]):
-                value = [2.]
-            else: 
-                raise ValueError('not activity type')
-            float_list += value
-
-            # Compromised
-            if all(compromised == [0, 0]):
-                value = [0.]
-            elif all(compromised == [1, 0]):
-                value = [1.]
-            elif all(compromised == [0,1]):
-                value = [2.]
-            elif all(compromised == [1,1]):
-                value = [3.]
-            else: 
-                raise ValueError('not compromised type')
-            float_list += value
-
-        success = obs[:2]
-        if all(success == [1, 0]):
-            float_list += [0.]
-        elif all(success == [0, 0]):
-            float_list += [1.]
-        elif all(success == [0, 1]):
-            float_list += [2.]
-
-        return np.array(float_list)
-        
-        

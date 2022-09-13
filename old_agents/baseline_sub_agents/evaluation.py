@@ -24,7 +24,7 @@ from ray.rllib.models.tf.attention_net import GTrXLNet
 from loadBanditController import LoadBanditBlueAgent as LoadBlueAgent
 #from loadLSTMagent import LoadBlueAgent
 from CybORGActionAgent import CybORGActionAgent
-MAX_EPS = 100
+MAX_EPS = 1000
 agent_name = 'Blue'
 
 def wrap(env):

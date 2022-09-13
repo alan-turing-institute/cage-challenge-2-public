@@ -1,0 +1,30 @@
+/Users/mylesfoley/opt/anaconda3/lib/python3.8/site-packages/paramiko/transport.py:219: CryptographyDeprecationWarning: Blowfish has been deprecated
+  "class": algorithms.Blowfish,
+Using checkpoint file (Controller): /Users/mylesfoley/Desktop/Imperial/git/turing/mia_dev/mindrake-float_obs/logs/bandits/controller_bandit_2022-07-15_11-08-56/bandit_controller_15000.pkl
+Using checkpoint file (B-line): /Users/mylesfoley/Desktop/Imperial/git/turing/mia_dev/mindrake-float_obs/logs/various/SR_B_lineAgent_new52obs-27floats_2022-07-16_16-40-09/PPO_CybORGAgent_931b8_00000_0_2022-07-16_16-40-10/checkpoint_001916/checkpoint-1916
+Using checkpoint file (Red Meander): /Users/mylesfoley/Desktop/Imperial/git/turing/mia_dev/mindrake-float_obs/logs/various/PPO_LSTM_RedMeanderAgent_2022-07-06_16-32-36/PPO_CybORGAgent_dcaaa_00000_0_2022-07-06_16-32-36/checkpoint_001829/checkpoint-1829
+2022-07-19 10:37:43,930	WARNING ppo.py:143 -- `train_batch_size` (4000) cannot be achieved with your other settings (num_workers=2 num_envs_per_worker=20 rollout_fragment_length=200)! Auto-adjusting `rollout_fragment_length` to 100.
+(RolloutWorker pid=69451) /Users/mylesfoley/opt/anaconda3/lib/python3.8/site-packages/paramiko/transport.py:219: CryptographyDeprecationWarning: Blowfish has been deprecated
+(RolloutWorker pid=69451)   "class": algorithms.Blowfish,
+(RolloutWorker pid=69445) /Users/mylesfoley/opt/anaconda3/lib/python3.8/site-packages/paramiko/transport.py:219: CryptographyDeprecationWarning: Blowfish has been deprecated
+(RolloutWorker pid=69445)   "class": algorithms.Blowfish,
+2022-07-19 10:37:59,509	INFO trainable.py:124 -- Trainable.setup took 15.579 seconds. If your trainable is slow to initialize, consider setting reuse_actors=True to reduce actor creation overheads.
+2022-07-19 10:37:59,595	INFO trainable.py:467 -- Restored on 127.0.0.1 from checkpoint: /Users/mylesfoley/Desktop/Imperial/git/turing/mia_dev/mindrake-float_obs/logs/various/PPO_LSTM_RedMeanderAgent_2022-07-06_16-32-36/PPO_CybORGAgent_dcaaa_00000_0_2022-07-06_16-32-36/checkpoint_001829/checkpoint-1829
+2022-07-19 10:37:59,595	INFO trainable.py:475 -- Current state after restoring: {'_iteration': 1829, '_timesteps_total': 0, '_time_total': 29899.77183365822, '_episodes_total': 73880}
+///// initiating CybORG... action space:
+Discrete(145)
+2022-07-19 10:37:59,853	INFO trainable.py:467 -- Restored on 127.0.0.1 from checkpoint: /Users/mylesfoley/Desktop/Imperial/git/turing/mia_dev/mindrake-float_obs/logs/various/SR_B_lineAgent_new52obs-27floats_2022-07-16_16-40-09/PPO_CybORGAgent_931b8_00000_0_2022-07-16_16-40-10/checkpoint_001916/checkpoint-1916
+2022-07-19 10:37:59,853	INFO trainable.py:475 -- Current state after restoring: {'_iteration': 1916, '_timesteps_total': 0, '_time_total': 97031.91204357147, '_episodes_total': 77414}
+Using agent LoadBanditBlueAgent, if this is incorrect please update the code to load in your agent
+Saving evaluation results to /Users/mylesfoley/Desktop/Imperial/git/cage-challenge-2/CybORG/CybORG/Evaluation/20220719_103759_LoadBanditBlueAgent.txt
+using CybORG v2.1, Scenario2
+
+Average reward for red agent B_lineAgent and steps 30 is: -3.4240000000000004 with a standard deviation of 1.7097533639845728
+Average reward for red agent RedMeanderAgent and steps 30 is: -6.769 with a standard deviation of 1.6371751354825856
+Average reward for red agent SleepAgent and steps 30 is: 0.0 with a standard deviation of 0.0
+Average reward for red agent B_lineAgent and steps 50 is: -6.117999999999996 with a standard deviation of 3.125146622822903
+Average reward for red agent RedMeanderAgent and steps 50 is: -10.549999999999999 with a standard deviation of 2.1547926380817506
+Average reward for red agent SleepAgent and steps 50 is: 0.0 with a standard deviation of 0.0
+Average reward for red agent B_lineAgent and steps 100 is: -12.66499999999999 with a standard deviation of 5.828116715067096
+Average reward for red agent RedMeanderAgent and steps 100 is: -17.340000000000003 with a standard deviation of 4.3315614092869925
+Average reward for red agent SleepAgent and steps 100 is: 0.0 with a standard deviation of 0.0
