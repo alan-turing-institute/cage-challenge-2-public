@@ -191,21 +191,6 @@ class BlueTableWrapper(BaseWrapper):
 
         return anomaly
 
-    # def _malware_analysis(self,obs,hostname):
-    # anomaly_dict = {hostname: {'Files': []}}
-    # if hostname in obs:
-    # if 'Files' in obs[hostname]:
-    # files = obs[hostname]['Files']
-    # else:
-    # return anomaly_dict
-    # else:
-    # return anomaly_dict
-
-    # for f in files:
-    # if f['Density'] >= 0.9:
-    # anomaly_dict[hostname]['Files'].append(f)
-
-    # return anomaly_dict
 
     def _create_blue_table(self, success):
         table = PrettyTable([

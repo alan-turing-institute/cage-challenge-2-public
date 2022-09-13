@@ -5,24 +5,11 @@ from statistics import mean, stdev
 
 from CybORG import CybORG, CYBORG_VERSION
 from CybORG.Agents import B_lineAgent, SleepAgent
-from CybORG.Agents.SimpleAgents.BaseAgent import BaseAgent
-from CybORG.Agents.SimpleAgents.BlueLoadAgent import BlueLoadAgent
-from CybORG.Agents.SimpleAgents.BlueReactAgent import BlueReactRemoveAgent
 from CybORG.Agents.SimpleAgents.Meander import RedMeanderAgent
-from CybORG.Agents.Wrappers.EnumActionWrapper import EnumActionWrapper
-from CybORG.Agents.Wrappers.FixedFlatWrapper import FixedFlatWrapper
-from CybORG.Agents.Wrappers.OpenAIGymWrapper import OpenAIGymWrapper
-from CybORG.Agents.Wrappers.ReduceActionSpaceWrapper import ReduceActionSpaceWrapper
+
 from CybORG.Agents.Wrappers import ChallengeWrapper
-from ray.rllib.models.tf.attention_net import GTrXLNet
 
-
-#from loadagent import LoadBlueAgent
-#from loadController import LoadBlueAgent
-#from loadSemiHeuristicController import LoadSemiHeuristicBlueAgent as LoadBlueAgent
-#from loadHeuristicController import LoadHeuristicBlueAgent as LoadBlueAgent
 from loadBanditController import LoadBanditBlueAgent as LoadBlueAgent
-#from loadLSTMagent import LoadBlueAgent
 from CybORGActionAgent import CybORGActionAgent
 MAX_EPS = 100
 agent_name = 'Blue'

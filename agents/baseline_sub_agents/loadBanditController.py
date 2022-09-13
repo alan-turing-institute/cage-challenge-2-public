@@ -6,7 +6,7 @@ from sub_agents import *
 import os.path as path
 from CybORG.Agents import B_lineAgent, SleepAgent, RedMeanderAgent
 from configs import *
-from CybORGActionAgent import CybORGActionAgent
+# from CybORGActionAgent import CybORGActionAgent
 import ray.rllib.agents.ppo as ppo
 from ray.rllib.models import ModelCatalog
 from bline_CybORGAgent import CybORGAgent as bline_CybORGAgent
@@ -17,25 +17,19 @@ class LoadBanditBlueAgent:
     """
     def __init__(self) -> None:
         ModelCatalog.register_custom_model("CybORG_hier_Model", TorchModel)
-        #relative_path = os.path.abspath(os.getcwd())[:62] + '/cage-challenge-1'
-        #print("Relative path:", relative_path)
 
         # Load checkpoint locations of each agent
         two_up = path.abspath(path.join(__file__, "../../../"))
-        #self.CTRL_checkpoint_pointer = two_up + '/log_dir/rl_controller_scaff/PPO_HierEnv_1e996_00000_0_2022-01-27_13-43-33/checkpoint_000212/checkpoint-212'
         self.CTRL_checkpoint_pointer = two_up + '/logs/bandits/controller_bandit_2022-07-15_11-08-56/bandit_controller_15000.pkl'
         self.BL_checkpoint_pointer = two_up + sub_agents['B_line_trained']
         self.RM_checkpoint_pointer = two_up + sub_agents['RedMeander_trained']
 
-        #with open ("checkpoint_pointer.txt", "r") as chkpopfile:
-        #    self.checkpoint_pointer = chkpopfile.readlines()[0]
         print("Using checkpoint file (Controller): {}".format(self.CTRL_checkpoint_pointer))
         print("Using checkpoint file (B-line): {}".format(self.BL_checkpoint_pointer))
         print("Using checkpoint file (Red Meander): {}".format(self.RM_checkpoint_pointer))
 
         # Restore the controller model
         with open(self.CTRL_checkpoint_pointer, "rb") as controller_chkpt:  # Must open file in binary mode for pickle
-            #print('Red Agent states loaded from {}'.format(controller_chpt))
             self.controller = pkl.load(controller_chkpt)
 
         self.bandit_observation = np.array([], dtype=int)
@@ -44,7 +38,6 @@ class LoadBanditBlueAgent:
         RM_config["explore"] = False
 
         BL_config = bline_config
-        #BL_config['model']['fcnet_hiddens'] = [256, 256, 256]
         BL_config["in_evaluation"] = True
         BL_config["explore"] = False
 
@@ -74,7 +67,6 @@ class LoadBanditBlueAgent:
     def get_action(self, obs, action_space):
         #update sliding window
         # discover network services sequence
-        #self.observations.append(obs)
         self.step += 1
         if self.step < 5:
             self.bandit_observation = np.append(self.bandit_observation, obs[2:])
