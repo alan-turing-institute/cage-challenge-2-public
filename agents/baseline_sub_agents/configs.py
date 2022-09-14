@@ -1,8 +1,8 @@
 from ray.rllib.agents.dqn.apex import APEX_DEFAULT_CONFIG
-from ray.rllib.agents.impala.impala import DEFAULT_CONFIG as IMPALA_CONFIG
+from ray.rllib.algorithms.impala.impala import DEFAULT_CONFIG as IMPALA_CONFIG
 from ray.rllib.agents.a3c.a2c import A2C_DEFAULT_CONFIG
-from ray.rllib.agents.sac.sac import DEFAULT_CONFIG as SAC_CONFIG
-from ray.rllib.agents.maml.maml import DEFAULT_CONFIG as MAML_CONFIG
+from ray.rllib.algorithms.sac.sac import DEFAULT_CONFIG as SAC_CONFIG
+from ray.rllib.algorithms.maml.maml import DEFAULT_CONFIG as MAML_CONFIG
 from ray.rllib.agents.ppo.ppo import DEFAULT_CONFIG as PPO_CONFIG
 from ray.rllib.models import ModelCatalog
 from ray.rllib.agents.trainer import Trainer
