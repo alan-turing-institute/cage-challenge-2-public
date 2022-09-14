@@ -89,7 +89,7 @@ for episode in range(N_EPISODES):
         blue_obs, rew, done, info = current_env.step(0)
     bandit_obs = ''.join(str(bit) for bit in bandit_obs)
 
-    dataset.append(bandit_obs, attacker)
+    dataset.append({'observation':bandit_obs, 'label':attacker}, ignore_index=True)
 
     if random.uniform(0, 1) < EPSILON:
         action = random.choice(action_selector)
@@ -131,7 +131,7 @@ for obs in rewards.keys():
     cumulative_average[obs] = np.cumsum(rewards[obs]) / len(rewards)
     #print(rewards[obs])
 
-bandit_path = '../../logs/bandits/controller_bandit_{}'.format(time.strftime("%Y-%m-%d_%H-%M-%S"))
+bandit_path = '../../logs/training/controller_bandit_{}'.format(time.strftime("%Y-%m-%d_%H-%M-%S"))
 os.mkdir(bandit_path)
 # plot moving average ctr
 obs_seen = []

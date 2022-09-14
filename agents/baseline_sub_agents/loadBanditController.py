@@ -20,7 +20,7 @@ class LoadBanditBlueAgent:
 
         # Load checkpoint locations of each agent
         two_up = path.abspath(path.join(__file__, "../../../"))
-        self.CTRL_checkpoint_pointer = two_up + '/logs/bandits/controller_bandit_2022-07-15_11-08-56/bandit_controller_15000.pkl'
+        self.CTRL_checkpoint_pointer = two_up + sub_agents['bandit_trained']
         self.BL_checkpoint_pointer = two_up + sub_agents['B_line_trained']
         self.RM_checkpoint_pointer = two_up + sub_agents['RedMeander_trained']
 

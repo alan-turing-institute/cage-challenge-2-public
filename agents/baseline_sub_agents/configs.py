@@ -1,12 +1,8 @@
-from ray.rllib.agents.dqn.apex import APEX_DEFAULT_CONFIG
-from ray.rllib.agents.impala.impala import DEFAULT_CONFIG as IMPALA_CONFIG
-from ray.rllib.agents.a3c.a2c import A2C_DEFAULT_CONFIG
-from ray.rllib.agents.sac.sac import DEFAULT_CONFIG as SAC_CONFIG
-from ray.rllib.agents.maml.maml import DEFAULT_CONFIG as MAML_CONFIG
 from ray.rllib.agents.ppo.ppo import DEFAULT_CONFIG as PPO_CONFIG
 from ray.rllib.models import ModelCatalog
 from ray.rllib.agents.trainer import Trainer
-from CybORGAgent import *
+from CybORGAgent import CybORGAgent
+from bline_CybORGAgent import CybORGAgent as bline_CybORGAgent
 import os
 from neural_nets import *
 from ray import tune
@@ -46,17 +42,13 @@ meander_config = {
 
 bline_config = Trainer.merge_trainer_configs(
         PPO_CONFIG,{
-        "env": CybORGAgent,
+        "env": bline_CybORGAgent,
         "env_config": {
             "null": 0,
         },
         # Use GPUs iff `RLLIB_NUM_GPUS` env various set to > 0.
         "num_gpus": int(os.environ.get("RLLIB_NUM_GPUS", "0")),
         "model": {
-            # ## autoreg 1
-            # "custom_model": "autoregressive_model",
-            # "custom_action_dist": "binary_autoreg_dist",
-            ## autoreg 2 (similar to original)
             "custom_model": "CybORG_Torch",
 
             "vf_share_layers": False,

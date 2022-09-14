@@ -7,20 +7,18 @@ sys.path.insert(0, os.path.abspath('..'))
 
 from CybORG import CybORG
 from CybORG.Agents import B_lineAgent, GreenAgent, BaseAgent, RedMeanderAgent, BlueMonitorAgent
-from CybORG.Agents.Wrappers import ChallengeWrapper
+# from CybORG.Agents.Wrappers import ChallengeWrapper
 from StateRepWrapper import StateRepWrapper
 from pprint import pprint
-from csv import writer
+# from csv import writer
 
 class CybORGAgent(gym.Env):
     max_steps = 100
     path = str(inspect.getfile(CybORG))
     path = path[:-10] + '/Shared/Scenarios/Scenario2.yaml'
 
-    # change red agents here
-    agent_choice = [RedMeanderAgent, B_lineAgent ]
     agents = {
-        'Red':  agent_choice[0]
+        'Red':  B_lineAgent
     }
 
     """The CybORGAgent env"""

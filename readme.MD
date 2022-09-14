@@ -31,6 +31,8 @@ The attackers are **MeanderAgent** (has no information about the network so it a
 * MeanderAgent defender uses `CybORGAgent.py` as the environment, where `ChallengeWrapper` creates 52-bit observation space. 
 * `configs.py` contrains RL configurations when training both subagents
 * `neural_nets.py` includes the customised neural network used in subagents
+* `train_simple_bandit.py` is used to train the bandit controller
+* `train_subagent.py` is used to train the subagents
 
 
 `logs/` -- contains the pretrained controller and subagent models.
@@ -72,10 +74,37 @@ pip install -r requirements.txt
 ```
 <br>
 
+## Model training
+To train subagnts
+```
+# assume you are in the main directory
+cd agents/baseline_sub_agents/
+
+# to train BLineAgent defender
+python train_subagent.py bline
+
+# to train MeanderAgent defender
+python train_subagent.py meander
+
+# to train bandit controller
+python train_simple_bandit.py
+```
+
 ## Model evaluation
+```
+# assume you are in the main directory
+cd agents/baseline_sub_agents/
+```
+
+
+### if you are using the pretrained models we provided:
 ```
 python evaluation.py
 ```
+
+### if you want to use the models you trained yourself:
+- Change the model directory in `sub_agents.py`
+- `python evaluation.py`
 
 <br>
 

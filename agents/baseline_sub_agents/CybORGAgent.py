@@ -12,16 +12,13 @@ class CybORGAgent(gym.Env):
     path = path[:-10] + '/Shared/Scenarios/Scenario2.yaml'
 
     agents = {
-        'Red': B_lineAgent  # , #RedMeanderAgent, 'Green': GreenAgent
+        'Red': RedMeanderAgent
     }
 
     """The CybORGAgent env"""
 
     def __init__(self, config: EnvContext):
         self.cyborg = CybORG(self.path, 'sim', agents=self.agents)
-
-        #self.env = OpenAIGymWrapper('Blue',
-        #                            EnumActionWrapper(FixedFlatWrapper(ReduceActionSpaceWrapper(self.cyborg))))
         self.env  = ChallengeWrapper(env=self.cyborg, agent_name='Blue')
         self.steps = 1
         self.agent_name = self.env.agent_name
