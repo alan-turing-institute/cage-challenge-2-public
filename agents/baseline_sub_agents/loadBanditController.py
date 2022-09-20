@@ -8,8 +8,10 @@ from CybORG.Agents import B_lineAgent, SleepAgent, RedMeanderAgent
 from configs import *
 # from CybORGActionAgent import CybORGActionAgent
 import ray.rllib.agents.ppo as ppo
+from ray.rllib.agents.ppo import PPOTrainer
 from ray.rllib.models import ModelCatalog
 from bline_CybORGAgent import CybORGAgent as bline_CybORGAgent
+
 class LoadBanditBlueAgent:
 
     """
@@ -40,10 +42,11 @@ class LoadBanditBlueAgent:
         BL_config = bline_config
         BL_config["in_evaluation"] = True
         BL_config["explore"] = False
-
+        
         #load agent trained against RedMeanderAgent
-        self.RM_def = ppo.PPOTrainer(config=RM_config, env=CybORGAgent)
+        self.RM_def = PPOTrainer(config=RM_config, env=CybORGAgent)
         self.RM_def.restore(self.RM_checkpoint_pointer)
+
         #load agent trained against B_lineAgent
         BL_config['env'] = bline_CybORGAgent
         BL_config["env_config"] = {'agent_name': 'Blue', 'env': None, 'max_steps': 100, 'attacker': B_lineAgent}

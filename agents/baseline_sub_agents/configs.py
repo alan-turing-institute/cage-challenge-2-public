@@ -1,6 +1,6 @@
 from ray.rllib.agents.ppo.ppo import DEFAULT_CONFIG as PPO_CONFIG
 from ray.rllib.models import ModelCatalog
-from ray.rllib.agents.trainer import Trainer
+from ray.rllib.agents import Trainer
 from CybORGAgent import CybORGAgent
 from bline_CybORGAgent import CybORGAgent as bline_CybORGAgent
 import os
@@ -18,9 +18,11 @@ meander_config = {
     "gamma": 0.99,
     # Use GPUs iff `RLLIB_NUM_GPUS` env var set to > 0.
     "num_gpus": int(os.environ.get("RLLIB_NUM_GPUS", 0)),
-    "num_envs_per_worker": 20,
+    "num_envs_per_worker": 4,
     "entropy_coeff": 0.001,
     "num_sgd_iter": 10,
+    "horizon": 100,
+    "rollout_fragment_length": 100,
     #"vf_loss_coeff": 1e-5,
     #"vf_share_layers": False,
     "model": {

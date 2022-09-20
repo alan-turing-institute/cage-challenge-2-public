@@ -20,6 +20,7 @@ class CybORGAgent(gym.Env):
     def __init__(self, config: EnvContext):
         self.cyborg = CybORG(self.path, 'sim', agents=self.agents)
         self.env  = ChallengeWrapper(env=self.cyborg, agent_name='Blue')
+        self.env._max_episode_steps=100
         self.steps = 1
         self.agent_name = self.env.agent_name
         self.action_space = self.env.action_space
@@ -40,4 +41,3 @@ class CybORGAgent(gym.Env):
 
     def seed(self, seed=None):
         random.seed(seed)
-
