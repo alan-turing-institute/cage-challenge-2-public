@@ -5,7 +5,6 @@
 
 This repository contains the model that won the 3rd place in [CAGE-Challenge-2](https://github.com/cage-challenge/cage-challenge-2). This model has shown clear performance improvement under CAGE-Challenge-2 CybORG environment, compared with our original [winning model](https://github.com/alan-turing-institute/cage-challenge-1/blob/submission_final) in [CAGE-Challenge-1](https://github.com/cage-challenge/cage-challenge-1) under the same environment. 
 
-
 <br><br/>
 
 # Model Architecture
@@ -16,7 +15,6 @@ Our blue agent here keeps the hierarchical structure, meaning it has a controlle
 The controller can achive 100% accuracy when choosing the subagent. It uses simple bandit learning algorithm which has been pretrained for 15000 steps.
 
 The attackers are **MeanderAgent** (has no information about the network so it attacks the hosts at random) and **BLineAgent** (has information about the network so it has clear strategy to exploit operational server). Subagent for **MeaderAgent** uses PPO algorithms and 52-bit observation space, while subagent for **BLineAgent** uses PPO with curiosity and 27-float observation space. 
-
 
 <br><br/>
 
