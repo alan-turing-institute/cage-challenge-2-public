@@ -43,13 +43,16 @@ torch, nn = try_import_torch()
 
 if __name__ == "__main__":
     # set subagent config
-    if len(sys.argv) >1:
+    config = dict()
+    if len(sys.argv) > 1:
         if sys.argv[1].lower() == 'bline':
             config = bline_config
         elif sys.argv[1].lower() == 'meander':
             config = meander_config
-        else: 
-            raise ValueError("Please specify which subagent you'd like to train.")
+        else:
+            raise ValueError("Please specify which subagent you'd like to train: \"bline\" or \"meander\".")
+    else: 
+        raise ValueError("Please specify which subagent you'd like to train: \"bline\" or \"meander\".")
     
     adversary_name = config['env'].agents['Red'].__name__
     # ModelCatalog.register_custom_model("CybORG_hier_Model", TorchModel)
