@@ -5,6 +5,18 @@
 
 This repository contains the model that won the 3rd place in [CAGE-Challenge-2](https://github.com/cage-challenge/cage-challenge-2). This model has shown clear performance improvement under CAGE-Challenge-2 CybORG environment, compared with our original [winning model](https://github.com/alan-turing-institute/cage-challenge-1/blob/submission_final) in [CAGE-Challenge-1](https://github.com/cage-challenge/cage-challenge-1) under the same environment. 
 
+If you use this repository in your research, please cite it as follows:
+
+```bibtex
+@inproceedings{foley2022autonomous,
+  title={Autonomous network defence using reinforcement learning},
+  author={Foley, Myles and Hicks, Chris and Highnam, Kate and Mavroudis, Vasilios},
+  booktitle={Proceedings of the 2022 ACM on Asia Conference on Computer and Communications Security},
+  pages={1252--1254},
+  year={2022}
+}
+```
+
 <br><br/>
 
 # Model Architecture
